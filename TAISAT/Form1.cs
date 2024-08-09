@@ -38,7 +38,6 @@ namespace TAISAT
 {
     public partial class TAISAT : Form
     {
-        //TODO: DEVELOPER VARİABLES 
         string telemetry_CurrentDate;
         string telemetry_CurrentTime;
         //TO-DO 
@@ -119,20 +118,10 @@ namespace TAISAT
              new PointLatLng(38.398447983639656, 33.71120194610159),//Aksaray Hisar Atış Alanı Koordinatları
              GMarkerGoogleType.green_dot);
         GMapOverlay polyOverlay = new GMapOverlay("polygons");
-        bool gapi = false;
-        bool gmap = true;
         string mapCacheFolder = @"C:\Users\efeka\source\repos\TAISAT\Extensions\Map";
         //Offline Map
         //My Functions
-        #region BURA HATA VERİYOR
-        public void InitBrowser()//Google
-        {
-            var settings = new CefSettings();
-            settings.RegisterScheme(new CefCustomScheme { SchemeName = "localfolder", SchemeHandlerFactory = new FolderSchemeHandlerFactory(rootFolder: @"C:\Users\efeka\OneDrive\Masaüstü\TAISAT_Arayuz-main\Extensions\Map", defaultPage: "index.html") });
-            Cef.Initialize(settings);
-            gapiMap.LoadHtml(File.ReadAllText(@"C:\Users\efeka\OneDrive\Masaüstü\TAISAT_Arayuz-main\Extensions\Map\index.html"));
-            gmapMap.Overlays.Add(objects);
-        }
+        
         void InitGmap()//Gmap
         {
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
@@ -148,7 +137,7 @@ namespace TAISAT
             gmapMap.Overlays.Add(markers);
             gmapMap.Dock = DockStyle.Fill;
         }
-        #endregion 
+     
         void AddSatPointToGMAP(double lat, double lng)
         {
             sat = new GMarkerGoogle(
@@ -260,6 +249,20 @@ namespace TAISAT
             }
             catch (Exception) { MessageBox.Show("GetAll"); return null; }
         }
+        public static string GetExternalDrivePath() //TODO: Bu fonksiyon çıkarılabilir diski otomatik bulur ve o diskin yolunu döndürür.
+        {
+            DriveInfo[] allDrives = DriveInfo.GetDrives();
+
+            foreach (DriveInfo drive in allDrives)
+            {
+                if (drive.DriveType == DriveType.Removable)
+                {
+                    return drive.Name; 
+                }
+            }
+
+            return null; 
+        }
         void SaveFlightCSV()
         {
             try
@@ -268,7 +271,7 @@ namespace TAISAT
                 csv.AppendLine("<PAKETNUMARASI>;<UYDUSTATUSU>;<HATAKODU>;<GONDERMESAATI>;<BASINC1>;<BASINC2>;<YUKSEKLIK1>;<YUKSEKLIK2>;<IRTIFAFARKI>;<INIŞHIZI>;<SICAKLIK>;<PILGERILIMI>;<GPS1LATITUDE>;<GPS1LONGITUDE>;<GPS1ALTITUDE>;<PITCH>;<ROLL>;<YAW>;<RHRH>;<IoTDATA>;<TAKIMNO>;");
                 foreach (var log in logs)
                     csv.AppendLine(log);
-                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "telemetrydatas.csv");
+                string filePath = Path.Combine(GetExternalDrivePath(), "telemetrydatas.csv");
                 File.WriteAllText(filePath, csv.ToString());
                 MessageBox.Show("CSV dosyası oluşturuldu" + filePath);
             }
@@ -283,52 +286,7 @@ namespace TAISAT
                     comboBox_COMPortTelemetry.Items.Add(port);
             }
             catch (Exception) { MessageBox.Show("ListComPorts"); }
-        }
-        //TODO: BURAYI GÖRÜNÜR HALE GETİR
-        //void ResetData()
-        //{
-        //    try
-        //    {
-        //        label_Error_Code.Text = "11111";
-        //        telemetry_CurrentDate = "0";
-        //        telemetry_CurrentTime = "0";
-        //        label_containerPressure.Text = "0";
-        //        label_payloadPressure.Text = "0";
-        //        label_containerAltitude.Text = "0";
-        //        label_payloadAltitude.Text = "0";
-        //        label_AltitudeDiff.Text = "0";
-        //        label_payloadVelocity.Text = "0";
-        //        label_payloadTemperature.Text = "0";
-        //        label_payloadBataryVoltage.Text = "0";
-        //        label_payloadGPSLatitude.Text = "0";
-        //        label_payloadGPSLongitude.Text = "0";
-        //        label_payloadGPSAltitude.Text = "0";
-        //        label_payloadPitch.Text = "0";
-        //        label_payloadRoll.Text = "0";
-        //        label_payloadYaw.Text = "0";
-        //        label_carrierTemperature.Text = "0";
-        //        label_carrierVoltage.Text = "0";
-        //        label_carrierGPSLatitude.Text = "0";
-        //        label_carrierGPSLongitude.Text = "0";
-        //        label_IoT_Data.Text = "0";
-        //        errorBit1.BackColor = label_Error_Code.Text[0] == '0' ? Color.Lime : Color.Red;
-        //        errorBit2.BackColor = label_Error_Code.Text[1] == '0' ? Color.Lime : Color.Red;
-        //        errorBit3.BackColor = label_Error_Code.Text[2] == '0' ? Color.Lime : Color.Red;
-        //        errorBit4.BackColor = label_Error_Code.Text[3] == '0' ? Color.Lime : Color.Red;
-        //        errorBit5.BackColor = label_Error_Code.Text[4] == '0' ? Color.Lime : Color.Red;
-        //        resetWait = 5;
-        //    }
-        //    catch (Exception) { MessageBox.Show("ResetData"); }
-        //    try
-        //    {
-        //        if (button_telemetryCOMPortOpenClose.BackColor == Color.Red)
-        //        {
-        //            port.Close();
-        //            port.Open();
-        //        }
-        //    }
-        //    catch (Exception) { }
-        //}
+        } 
         private void AddTelemetryTable()
         {
             try
@@ -358,7 +316,7 @@ namespace TAISAT
         {
             try
             {
-                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "telemetrydatas.txt");
+                string filePath = Path.Combine(GetExternalDrivePath(), "telemetrydatas.txt");
                 File.AppendAllText(filePath, log);
             }
             catch { }
@@ -398,7 +356,6 @@ namespace TAISAT
             var cameraKey = new char[] { '#', '*', '?', '?', '?', '?', '#' };
             if (portIsOpen == true)
             {
-                //TODO: for döngüsünü kaldır.
                 for (int i = 0; i < 5; i++)
                 {
                     port.Write(cameraKey, 0, cameraKey.Length);
@@ -411,7 +368,6 @@ namespace TAISAT
             var cameraKey = new char[] { '#', '*', '?', '?', '?', '?','#' };
             if (portIsOpen == true)
             {
-                //TODO: for döngüsünü kaldır.
                 for (int i = 0; i < 5; i++)
                 {
                     port.Write(cameraKey, 0, cameraKey.Length);
@@ -531,19 +487,6 @@ namespace TAISAT
 
             windowFixer.Start();
         }
-        //TODO: Kill Simulation için yeni yazılan metot çalışmazsa tekrar kontrol edilecek
-        //void KillSimulations()
-        //{
-        //    try
-        //    {
-        //        foreach (var process in Process.GetProcessesByName(_3DSimExePath.Split('/').Last().Split('.')[0]))
-        //        {
-        //            process.Kill();
-        //            process.WaitForExit();
-        //        }
-        //    }
-        //    catch (Exception ex ) { MessageBox.Show("KillSimulations" +ex.Message); }
-        //}
         void Deploy()
         {
             try
@@ -580,7 +523,6 @@ namespace TAISAT
 
         }
 
-        //TODO: Geçici süreliğine arayüzdeki log kısmına Aktif thread sayısını ekledim
         void UpdateTextBoxLogs(string logs)
         {
             if (textBox_logs.InvokeRequired)
@@ -629,9 +571,7 @@ namespace TAISAT
                 string telemetry = FormatTelemetryData(cache);
                 logs.Add(telemetry);
                 SaveTelemetryData(telemetryData);
-                UpdateStatusLabels(telemetryData);
-                UpdateGPSMap(telemetryData);
-                
+                UpdateStatusLabels(telemetryData);  
             }
             catch (Exception ex)
             {
@@ -687,7 +627,6 @@ namespace TAISAT
                 UpdateLabelText(label_Team_ID, Remove(telemetryData[21]));
                 UpdateLabelText(label_carrierTemperature,Remove(telemetryData[24]));
                 UpdateLabelText(label_carrierVoltage, Remove(telemetryData[25]));
-
             }
             catch { }
         }
@@ -763,11 +702,7 @@ namespace TAISAT
             }
         }
 
-        private void UpdateGPSMap(string[] telemetryData)
-        {
-            gapiMap.EvaluateScriptAsync("delLastMark();");
-            gapiMap.EvaluateScriptAsync($"setmark({telemetryData[13]},{telemetryData[14]},{telemetryData[13]},{telemetryData[14]});");
-        }
+        
         void UpdateSerialMonitorListbox(string partBuffer)
         {
             if (serialMonitorListBox.InvokeRequired)
@@ -864,11 +799,7 @@ namespace TAISAT
             catch (Exception) { }
             try
             {
-                if (gapi) { gmapMap.Enabled = false; gmapMap.Visible = false; gmapMap.Size = new Size(0, 0); gapiMap.Dock = DockStyle.Fill; }
-                else if (gmap) { gapiMap.Enabled = false; gapiMap.Visible = false; gapiMap.Size = new Size(0, 0); gmapMap.Dock = DockStyle.Fill; }
                 InitGmap();
-                gapiMap.Visible = false;
-                if (!dataCheck.Enabled) dataCheck.Start();
                 dataGridView_telemetrytable.Columns.Add("PAKET NUMARASI", "PAKET NUMARASI");
                 dataGridView_telemetrytable.Columns.Add("UYDU STATÜSÜ", "UYDU STATÜSÜ");
                 dataGridView_telemetrytable.Columns.Add("HATA KODU", "HATA KODU");
@@ -890,6 +821,14 @@ namespace TAISAT
                 dataGridView_telemetrytable.Columns.Add("RHRH", "RHRH");
                 dataGridView_telemetrytable.Columns.Add("IoT DATA", "IoT DATA");
                 dataGridView_telemetrytable.Columns.Add("TAKIM NO", "TAKIM NO");
+                dataGridView_telemetrytable.Columns[3].Width = 100;   
+                dataGridView_telemetrytable.Columns[6].Width = 65;
+                dataGridView_telemetrytable.Columns[7].Width = 65;
+                dataGridView_telemetrytable.Columns[10].Width = 62;
+                dataGridView_telemetrytable.Columns[11].Width = 62;
+                dataGridView_telemetrytable.Columns[12].Width = 62;
+                dataGridView_telemetrytable.Columns[13].Width = 62;
+                dataGridView_telemetrytable.Columns[14].Width = 62;
                 if (resolution == 480) { width = 640; height = 480; }
                 if (resolution == 720) { width = 1280; height = 720; }
                 if (resolution == 1080) { width = 1920; height = 1080; }
@@ -901,82 +840,11 @@ namespace TAISAT
                     video_Capture_Device = new VideoCaptureDevice();
                 }
                 ListComPorts();
-                gapiMap.LoadHtml(File.ReadAllText(@"C:\Users\efeka\OneDrive\Masaüstü\TAISAT_Arayuz-main\Extensions\Map\index.html"));
             }
             catch (Exception ex) { MessageBox.Show("Form1_Load" + ex.Message); }
-            // Form tam ekran başlasın
             this.WindowState = FormWindowState.Maximized;
-            // Formun minimize edilmesini engelle
             this.MinimizeBox = false;
-            dataGridView_telemetrytable.Columns[3].Width = 120;
-            //TODO: SİL LAN BUNLARI
-            ////Payload Pressure Chart
-            //double[] x = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-            //double[] y = new double[] { 1, 5, 6, 8, 10, 11, 12, 14, 17, 21, 22 };
-
-
-            //payloadPressure_Chart.Plot.YLabel("Pascal(Pa)");
-            //payloadPressure_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //payloadPressure_Chart.Plot.Title("Payload Pressure");
-            //payloadPressure_Chart.Plot.AddScatter(x, y);
-            //payloadPressure_Chart.Refresh();
-
-            ////Carrier Pressure Chart
-            //carrierPressure_Chart.Plot.YLabel("Pascal(Pa)");
-            //carrierPressure_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //carrierPressure_Chart.Plot.Title("Carrier Pressure");
-            //carrierPressure_Chart.Plot.AddScatter(x, y);
-            //carrierPressure_Chart.Refresh();
-            ////Battery Voltage Chart
-            //batteryVoltage_Chart.Plot.YLabel("Volt(V)");
-            //batteryVoltage_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //batteryVoltage_Chart.Plot.Title("Battery Voltage");
-            //batteryVoltage_Chart.Plot.AddScatter(x, y);
-            //batteryVoltage_Chart.Refresh();
-            ////Payload Altitude Chart
-            //payloadAltitude_Chart.Plot.YLabel("Metre(m)");
-            //payloadAltitude_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //payloadAltitude_Chart.Plot.Title("Payload Altitude");
-            //payloadAltitude_Chart.Plot.AddScatter(x, y);
-            //payloadAltitude_Chart.Refresh();
-            ////Carrier Altitude Chart
-            //carrierAltitude_Chart.Plot.YLabel("Metre(m)");
-            //carrierAltitude_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //carrierAltitude_Chart.Plot.Title("Carrier Altitude");
-            //carrierAltitude_Chart.Plot.AddScatter(x, y);
-            //carrierAltitude_Chart.Refresh();
-            ////Velocity Chart
-            //velocity_Chart.Plot.YLabel("m/s");
-            //velocity_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //velocity_Chart.Plot.Title("Velocity");
-            //velocity_Chart.Plot.AddScatter(x, y);
-            //velocity_Chart.Refresh();
-            ////Payload GPS Altitude Chart
-            //payloadGPSAltitude_Chart.Plot.YLabel("Metre(m)");
-            //payloadGPSAltitude_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //payloadGPSAltitude_Chart.Plot.Title("Payload GPS Altitude");
-            //payloadGPSAltitude_Chart.Plot.AddScatter(x, y);
-            //payloadGPSAltitude_Chart.Refresh();
-            ////Altitude Difference
-            //differenceAltitude_Chart.Plot.YLabel("Metre(m)");
-            //differenceAltitude_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //differenceAltitude_Chart.Plot.Title("Altitude Difference");
-            //differenceAltitude_Chart.Plot.AddScatter(x, y);
-            //differenceAltitude_Chart.Refresh();
-            ////Temperature Chart
-            //temperature_Chart.Plot.YLabel("Sıcaklık(C°)");
-            //temperature_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //temperature_Chart.Plot.Title("Temperature(C°)");
-            //temperature_Chart.Plot.AddScatter(x, y);
-            //temperature_Chart.Refresh();
-            ////IoT Data(Temperature(C°)) Chart
-            //IoT_Data_Chart.Plot.YLabel("Sıcaklık(C°)");
-            //IoT_Data_Chart.Plot.XLabel("Geçen Zaman(s)");
-            //IoT_Data_Chart.Plot.Title("IoT Data(Temperature(C°))");
-            //IoT_Data_Chart.Plot.AddScatter(x, y);
-            //IoT_Data_Chart.Refresh();
-            //TODO: sonradan silinecek bu kısım
-
+            
         }
 
         private void tableLayoutPanel2_Paint(object sender, PaintEventArgs e)
@@ -1128,14 +996,11 @@ namespace TAISAT
                     bool isPayloadLatitudeValid = !string.IsNullOrWhiteSpace(label_payloadGPSLatitude.Text) && label_payloadGPSLatitude.Text != "0";
                     bool isCarrierLongitudeValid = !string.IsNullOrWhiteSpace(label_carrierGPSLongitude.Text) && label_carrierGPSLongitude.Text != "0";
                     bool isCarrierLatitudeValid = !string.IsNullOrWhiteSpace(label_carrierGPSLatitude.Text) && label_carrierGPSLatitude.Text != "0";
-                    //TODO: Buraya diğer GPS verisi eklenmeli
-                    double carrierGPSLatitude = Convert.ToDouble(LocationDataSeperator(label_carrierGPSLatitude.Text.Replace(".", ","))) + 2;
-                    double carrierGPSLongitude = Convert.ToDouble(LocationDataSeperator(label_carrierGPSLongitude.Text.Replace(".", ","))) + 3;
                     if (isPayloadLongitudeValid && isPayloadLatitudeValid && isCarrierLongitudeValid && isCarrierLatitudeValid)
                     {
                         UpdateGMap(
-                            Convert.ToString(carrierGPSLatitude),
-                            Convert.ToString(carrierGPSLongitude),
+                            LocationDataSeperator(label_carrierGPSLatitude.Text.Replace(".", ",")),
+                            LocationDataSeperator(label_carrierGPSLongitude.Text.Replace(".", ",")),
                             LocationDataSeperator(label_payloadGPSLatitude.Text.Replace(".", ",")),
                             LocationDataSeperator(label_payloadGPSLongitude.Text.Replace(".", ","))
                         );
@@ -1170,17 +1035,7 @@ namespace TAISAT
             catch { }
         }
 
-        private void dataCheck_Tick(object sender, EventArgs e)
-        {
-            //TODO: Data Reset İhtiyaç değil 
-            //try
-            //{
-            //    data = serialMonitorListBox.Items.Count;
-            //    if (data == _data) { resetWait--; if (resetWait == 0) {/* ResetData();*/ } }//TODO: BURAYI TEKRAR GÖRÜNÜR HALE GETİR
-            //    else { _data = data; resetWait = 5; }
-            //}
-            //catch{}
-        }
+
 
         private void save_Data_Click(object sender, EventArgs e)
         {
@@ -1210,11 +1065,6 @@ namespace TAISAT
         }
 
 
-        private void gmapMap_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void button_Manuel_Deploy_Click(object sender, EventArgs e)
         {
             try
@@ -1240,7 +1090,6 @@ namespace TAISAT
             {
                 if (dataKeySender.Enabled) { dataKeySender.Stop(); } 
                 Close();
-                //TODO: Eğer Port açılıp veri alındıysa burada SaveFlightCSV(); ve diğer uygulamanın kapandığında çalıştırılması gereken fonksiyonları ekle Savefligttxt gibi
                 KillSimulations();
             }
             catch 
@@ -1273,7 +1122,6 @@ namespace TAISAT
         {
             try
             {
-                //TODO: Thread ile alakalı kodlar.
                 if (button_telemetryCOMPortOpenClose.BackColor != Color.Red)
                 {
                     if (comboBox_COMPortTelemetry.SelectedIndex != -1)
@@ -1286,7 +1134,7 @@ namespace TAISAT
                             , "Seri Port Bağlantı Bildirimi", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         portIsOpen = true;
                         if (!dataKeySender.Enabled) dataKeySender.Start();
-                        StartSimulation();//TODO: Simülasyon ile alakalı  
+                        StartSimulation();
                     }
                     else { MessageBox.Show("COM Seçimi yapınız."); }
                 }
@@ -1325,11 +1173,6 @@ namespace TAISAT
         {
 
         }
-        //TODO: Thread ile yapmak daha verimli olabilir.
-        //void dataKeySenderFunction()
-        //{
-
-        //}
         private void dataKeySender_Tick(object sender, EventArgs e)
         {
             try
@@ -1356,14 +1199,10 @@ namespace TAISAT
                 bufferPackageCount = buffer.Split('\n').Length;
                 partBuffer = buffer.Split('\n');
                 if (counter != bufferPackageCount && partBuffer[counter].Split(',').Length == 27 )
-                {
-                     
-                        // Buffer tamamlandıysa ve geçerli bir veri içeriyorsa işleme başla
+                {                  
                         telemetryData = partBuffer[counter].Split(',');
                         Task task4 = Task.Run(() => AddToSerialMonitorListBox());
-                        // Veriyi işlemeye başla
                         ProcessTelemetryData(telemetryData);
-                        //TODO: Simülasyonun kodlarını daha derli toplu hale getir.
                         string gyroData = label_payloadPitch.Text + "," + label_payloadYaw.Text + "," + label_payloadRoll.Text;
                         try { new UdpClient().Send(Encoding.ASCII.GetBytes(gyroData), Encoding.ASCII.GetBytes(gyroData).Length, "127.0.0.1", 11000); } catch (Exception ex ){ MessageBox.Show("Simülasyon hatası" + ex.Message); }
                         counter++;
